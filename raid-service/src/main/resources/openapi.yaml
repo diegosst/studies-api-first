@@ -1,0 +1,201 @@
+openapi: 3.0.3
+info:
+  title: Raid Service - OpenAPI 3.0
+  description: |-
+    This is the API contract for the Raid Service.
+    
+    Raid Service is responsible for everything related to the raids in the game, and offers features that let the player search, summon, engage and attack it.
+
+  termsOfService: https://docs.github.com/pt/site-policy/github-terms/github-terms-of-service
+  contact:
+    email: diego.ss@outlook.com
+  license:
+    name: MIT License
+    url: https://www.mit.edu/~amini/LICENSE.md
+  version: 1.0.11
+externalDocs:
+  description: More information
+  url: https://medium.com/better-practices/api-first-software-development-for-modern-organizations-fdbfba9a66d3
+servers:
+  - url: https://api.aotpgame.com/raid-service/v1
+tags:
+  - name: Raid
+    description: Summon, search and engage available raids.
+    externalDocs:
+      description: Documentation
+      url: javascript:;
+paths:
+  /raid:
+    put:
+      tags:
+        - Raid
+      summary: Update an existing raid
+      description: Update an existing raid by Id
+      operationId: updateRaid
+      requestBody:
+        description: Update an existent raid information
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Raid'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Raid'          
+        '400':
+          description: Invalid operation
+        '404':
+          description: Raid not found for the given ID
+        '405':
+          description: Validation exception
+      security:
+        - authorization_server:
+            - write:raids
+            - read:raids
+    post:
+      tags:
+        - Raid
+      summary: Create a new raid
+      description: Add a new raid
+      operationId: addRaid
+      requestBody:
+        description: Create a new raid
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Raid'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Raid'
+        '400':
+          description: Invalid operation
+        '405':
+          description: Invalid input body
+      security:
+        - authorization_server:
+            - write:raids
+            - read:raids
+    get:
+      tags:
+        - Raid
+      summary: Find all raids
+      description: Search all available raids for the given parameters
+      operationId: findRaids
+      parameters:
+        - name: status
+          in: query
+          description: Status values that need to be considered for filter
+          required: false
+          explode: true
+          schema:
+            type: string
+            default: available
+            enum:
+              - available
+              - completed
+              - expired
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Raid'          
+        '400':
+          description: Invalid status value
+        '405':
+          description: Validation exception
+      security:
+        - authorization_server:
+            - write:raids
+            - read:raids
+  /raid/{raidId}:
+    get:
+      tags:
+        - Raid
+      summary: Find raid by ID
+      description: Retrieve a raid for a given identifier
+      operationId: findRaidById
+      parameters:
+        - name: raidId
+          in: path
+          description: Identifier of the raid
+          required: true
+          explode: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Raid'          
+        '400':
+          description: Invalid operation
+        '404':
+          description: Raid not found for the given ID.
+      security:
+        - authorization_server:
+            - write:raids
+            - read:raids
+components:
+  schemas:
+    Raid:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 'c031144f-f877-4f4e-ba6b-0ff044b3e019'
+        raidId:
+          type: string
+          example: '02576132-dca6-11ed-afa1-0242ac120002'
+        maxDuration:
+          type: integer
+          format: int64
+          description: 'Maximum duration in seconds'
+          example: 10800
+        summonDateTime:
+          type: string
+          format: date-time
+          example: '13/01/2023 22:55:32'
+        status:
+          type: string
+          description: Raid status
+          example: approved
+          enum:
+            - available
+            - completed
+            - expired
+      xml:
+        name: Raid
+  requestBodies:
+    Raid:
+      description: Raid object
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Raid'
+  securitySchemes:
+    authorization_server:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: https://api.aotpgame.com/oauth/authorize
+          scopes:
+            write:raids: modify raids
+            read:raids: read your raids
+    
